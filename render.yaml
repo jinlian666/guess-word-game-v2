@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: ai-guess-word-game
+    env: node
+    plan: free
+    buildCommand: npm install
+    startCommand: node server.js
+    envVars:
+      - key: NODE_VERSION
+        value: 18
+      - key: DOUBAO_API_KEY
+        value: 191b8b3e-1141-4e63-850f-57d40482082f
+      - key: DOUBAO_MODEL
+        value: ep-20250613151228-q5wqz
+    autoDeploy: yes
