@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI智能猜词小游戏</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "思源黑体", sans-serif;
+        }
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 10px;
+            -webkit-text-size-adjust: 100%;
+        }
+        /* 手机端响应式适配 */
+        @media (max-width: 768px) {
+            body {
+                padding: 8px;
+            }
+            .container {
+                flex-direction: column;
+                gap: 12px;
+            }
+            .game-area {
+                padding: 18px;
+                flex: none;
+            }
+            .rank-area {
+                flex: none;
+                padding: 16px;
+            }
+            .game-title {
+                font-size: 20px;
+            }
+            .user-info {
+                flex-direction: column;
+                gap: 6px;
+                padding: 10px;
+            }
+            .input-area {
+                flex-direction: column;
+            }
+            #guess-input {
+                width: 260px !important;
+                max-width: 260px !important;
+            }
+            .btn {
+                width: auto;
+                min-width: 100px;
+                padding: 14px 20px;
+                font-size: 16px;
+            }
+            .guess-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 6px;
+            }
+            .login-box {
+                width: 95%;
+                padding: 25px 20px;
+            }
+            .word-category {
+                padding: 15px;
+            }
+            .category-name {
+                font-size: 20px;
+            }
+            .hint-area {
+                padding: 15px;
+            }
+            .guess-list {
+                max-height: 220px;
+            }
+        }
+        @media (max-width: 480px) {
+            .game-area {
+                padding: 15px;
+            }
+            .game-title {
+                font-size: 18px;
+            }
+            .ai-badge {
+                display: block;
+                margin: 8px auto 0;
+                width: fit-content;
+            }
+            .user-name, .level-info {
+                font-size: 13px;
+            }
+            .timer {
+                font-size: 13px;
+            }
+            #guess-input {
+                padding: 14px;
+                font-size: 16px;
+            }
+            .rank-item {
+                padding: 12px 8px;
+            }
+            .rank-name {
+                font-size: 13px;
+            }
+        }
+        /* 登录弹窗 */
+        .login-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 999;
+        }
+        .login-box {
+            background: white;
+            padding: 25px;
+            border-radius: 16px;
+            width: 90%;
+            max-width: 300px;
+            text-align: center;
+        }
+        .login-title {
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 20px;
+        }
+        .login-input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            margin-bottom: 15px;
+            outline: none;
+        }
+        .login-input:focus {
+            border-color: #667eea;
+        }
+        .login-btn {
+            width: 100%;
+            padding: 12px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .tab-btn {
+            flex: 1;
+            padding: 8px;
+            border: none;
+            border-radius: 6px;
+            background: #f0f0f0;
+            color: #666;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .tab-btn.active {
+            background: #667eea;
+            color: white;
+        }
+        .login-btn:hover {
+            background: #5568d3;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        /* 游戏主区域 */
+        .game-area {
+            flex: 1 1 500px;
+            background: white;
+            border-radius: 16px;
+            padding: 25px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            min-width: 0;
+        }
+        .game-title {
+            text-align: center;
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 24px;
+            font-weight: bold;
+        }
+        .user-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #f0f4ff;
+            padding: 12px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+        }
+        .user-name {
+            color: #667eea;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        .level-info {
+            color: #f59e0b;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        .season-info {
+            text-align: center;
+            color: #666;
+            font-size: 13px;
+            margin-bottom: 15px;
+        }
+        .word-category {
+            background: #f0f4ff;
+            padding: 12px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        .category-label {
+            color: #667eea;
+            font-size: 14px;
+            font-weight: bold;
+        }
+        .category-name {
+            color: #333;
+            font-size: 18px;
+            margin-top: 5px;
+        }
+        .word-length {
+            color: #666;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+        .input-area {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+        #guess-input {
+            flex: 0 1 auto;
+            width: 280px;
+            max-width: 280px;
+            padding: 12px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+        #guess-input:focus {
+            border-color: #667eea;
+        }
+        .btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            white-space: nowrap;
+        }
+        .submit-btn {
+            background: #667eea;
+            color: white;
+        }
+        .submit-btn:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+        }
+        .submit-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .next-btn {
+            background: #f59e0b;
+            color: white;
+        }
+        .next-btn:hover {
+            background: #d97706;
+            transform: translateY(-2px);
+        }
+        .hint-area {
+            background: #fffbeb;
+            padding: 12px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            border-left: 4px solid #f59e0b;
+        }
+        .hint-title {
+            color: #d97706;
+            font-weight: bold;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+        .hint-content {
+            color: #666;
+            line-height: 1.5;
+            font-size: 14px;
+        }
+        .timer {
+            text-align: center;
+            color: #666;
+            margin-bottom: 15px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        .guess-list {
+            max-height: 280px;
+            overflow-y: auto;
+            border-top: 1px solid #eee;
+            padding-top: 12px;
+        }
+        .guess-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            border-radius: 6px;
+            margin-bottom: 8px;
+            background: #f9fafb;
+        }
+        .guess-word {
+            color: #333;
+            font-weight: 500;
+            word-break: break-all;
+        }
+        .similarity {
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: bold;
+            white-space: nowrap;
+        }
+        .similarity-high {
+            background: #dcfce7;
+            color: #166534;
+        }
+        .similarity-medium {
+            background: #fef3c7;
+            color: #92400e;
+        }
+        .similarity-low {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+        .success-tip {
+            background: #dcfce7;
+            color: #166534;
+            padding: 12px;
+            border-radius: 10px;
+            text-align: center;
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            display: none;
+        }
+        .loading {
+            text-align: center;
+            color: #667eea;
+            font-size: 14px;
+            padding: 10px;
+        }
+        /* 排行榜区域 */
+        .rank-area {
+            flex: 1 1 280px;
+            background: white;
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            height: fit-content;
+            min-width: 0;
+        }
+        .rank-title {
+            color: #333;
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        .rank-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .rank-item {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            border-radius: 8px;
+            background: #f9fafb;
+        }
+        .rank-num {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin-right: 10px;
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+        .rank-1 {
+            background: #fbbf24;
+            color: white;
+        }
+        .rank-2 {
+            background: #9ca3af;
+            color: white;
+        }
+        .rank-3 {
+            background: #b45309;
+            color: white;
+        }
+        .rank-other {
+            background: #e5e7eb;
+            color: #666;
+        }
+        .rank-name {
+            flex: 1;
+            color: #333;
+            font-weight: 500;
+            font-size: 14px;
+            word-break: break-all;
+        }
+        .rank-score {
+            color: #667eea;
+            font-weight: bold;
+            font-size: 14px;
+            white-space: nowrap;
+        }
+        .empty-tip {
+            text-align: center;
+            color: #999;
+            padding: 20px;
+            font-size: 14px;
+        }
+        .refresh-btn {
+            width: 100%;
+            margin-top: 10px;
+            padding: 8px;
+            background: #f0f4ff;
+            color: #667eea;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+        }
+        .ai-badge {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 12px;
+            margin-left: 5px;
+        }
+    </style>
+</head>
+<body>
+    <!-- 登录弹窗 -->
+    <div class="login-modal" id="login-modal">
+        <div class="login-box">
+            <div class="login-title">🎯 AI智能猜词小游戏</div>
+            <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+                <button class="tab-btn active" id="login-tab" onclick="switchTab('login')">登录</button>
+                <button class="tab-btn" id="register-tab" onclick="switchTab('register')">注册</button>
+            </div>
+            <div id="login-form">
+                <input type="text" class="login-input" id="login-username" placeholder="用户名">
+                <input type="password" class="login-input" id="login-password" placeholder="密码">
+                <button class="login-btn" id="do-login">登录</button>
+            </div>
+            <div id="register-form" style="display: none;">
+                <input type="text" class="login-input" id="reg-username" placeholder="用户名（至少3位）">
+                <input type="password" class="login-input" id="reg-password" placeholder="密码（至少6位）">
+                <input type="text" class="login-input" id="reg-nickname" placeholder="游戏昵称">
+                <button class="login-btn" id="do-register">注册</button>
+            </div>
+        </div>
+    </div>
+    <div class="container">
+        <!-- 游戏主区域 -->
+        <div class="game-area">
+            <h1 class="game-title">🎯 AI智能猜词 <span class="ai-badge">大模型语义判断</span></h1>
+            
+            <div class="user-info">
+                <div class="user-name" id="user-name">👤 玩家</div>
+                <div class="level-info" id="level-info">🏆 段位：青铜Ⅲ</div>
+            </div>
+            <div class="season-info" id="season-info">📅 当前赛季：2026年第24周</div>
+            
+            <div class="word-category">
+                <div class="category-label">当前词语大类</div>
+                <div class="category-name" id="category-name">自然类</div>
+                <div class="word-length" id="word-length">共 2 个字</div>
+            </div>
+            <div class="success-tip" id="success-tip">
+                🎉 恭喜你猜对了！答案就是「<span id="answer-word"></span>」
+            </div>
+            <div class="timer">
+                已用时：<span id="time-count">00:00</span> | 已猜词数：<span id="guess-count">0</span> | 距离下次提示还有 <span id="hint-count">03:00</span>
+            </div>
+            <div class="hint-area">
+                <div class="hint-title">💡 提示</div>
+                <div class="hint-content" id="hint-content">开始你的第一次猜测吧！</div>
+            </div>
+            <div class="input-area">
+                <input type="text" id="guess-input" placeholder="输入你猜测的词语，按回车或点击提交">
+                <button class="btn submit-btn" id="submit-btn">确定</button>
+                <button class="btn next-btn" id="next-btn">下一个词</button>
+            </div>
+            <div class="loading" id="loading" style="display: none;">🤖 AI正在分析语义关联度...</div>
+            <div class="guess-list" id="guess-list">
+                <div class="empty-tip">还没有猜测记录</div>
+            </div>
+        </div>
+        <!-- 排行榜区域 -->
+        <div class="rank-area">
+            <h2 class="rank-title">🏆 本周全服排行榜</h2>
+            <div class="rank-list" id="rank-list">
+                <div class="empty-tip">加载中...</div>
+            </div>
+            <button class="refresh-btn" id="refresh-rank">🔄 刷新排行榜</button>
+        </div>
+    </div>
+    <script>
+        // 全局用户信息
+        let currentUser = null;
