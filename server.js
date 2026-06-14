@@ -43,7 +43,30 @@ db.serialize(() => {
         similarity INTEGER NOT NULL,
         used_time INTEGER NOT NULL,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (user_id) REFERENCES users(id)
+        F
+        O});
+
+// 确保管理员账号存在
+function ensureAdminAccount() {
+    const currentSeason = getCurrentSeason();
+    db.get('SELECT id FROM users WHERE username = ?', ['jinlian'], (err, user) => {
+        if (!user) {
+            db.run('INSERT INTO users (username, password, nickname, is_admin, current_season, season_score, total_score) VALUES (?, ?, ?, ?, ?, 0, 0)', 
+                ['jinlian', 'jinlian666', '管理员', 1, currentSeason], (err) => {
+                if (err) console.error('创建管理员账号失败:', err);
+                else console.log('✅ 管理员账号创建成功: jinlian / jinlian666');
+            });
+        } else {
+            db.run('UPDATE users SET password = ?, is_admin = 1 WHERE username = ?', ['jinlian666', 'jinlian'], (err) => {
+                console.log('✅ 管理员账号已确认: jinlian / jinlian666');
+            });
+        }
+    });
+}
+
+// 初始化管理员账号
+ensureAdminAccount();
+e        FOREIGN KEY (user_id) REFERENCES users(id)
     )`);
 });
 
@@ -175,7 +198,19 @@ async function aiCalcSimilarity(guessWord, targetWord, category) {
             high: ["心", "情", "感", "思", "想", "梦", "爱", "友", "信", "望", "勇", "智", "自", "由", "幸"],
             medium: ["好", "美", "快", "乐", "悲", "伤", "孤", "独", "时", "间"]
         }
-    };
+,
+    "美食类": {
+        high: ["饭", "面", "肉", "菜", "汤", "茶", "酒", "奶", "糖", "盐", "油", "酱", "醋", "辣", "甜"],
+        medium: ["吃", "喝", "香", "鲜", "美", "味", "热", "冷", "酸", "咸"]
+    },
+    "地点类": {
+        high: ["城", "市", "村", "镇", "山", "河", "海", "湖", "江", "路", "街", "楼", "园", "馆", "店"],
+        medium: ["大", "小", "古", "新", "远", "近", "南", "北", "东", "西"]
+    },
+    "影视动漫类": {
+        high: ["电", "影", "视", "剧", "动", "漫", "画", "卡", "游", "戏", "星", "角", "色", "英", "雄"],
+        medium: ["好", "看", "火", "热", "新", "老", "经", "典", "名", "作"]
+    }    };
 
     // 根据大类智能评分
     const catData = categoryMap[category];
